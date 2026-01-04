@@ -131,9 +131,6 @@ export default async function Home() {
                   MD ANAS SABAH
                 </Link>
               </p>
-              <p className="text-center md:text-left text-xs text-muted-foreground">
-                Powered by Next.js 16, TypeScript, and PostgreSQL
-              </p>
             </div>
             <div className="flex items-center gap-4">
               <Link

@@ -34,7 +34,7 @@ export function Header({ user }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container mx-auto px-4 max-w-7xl flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center space-x-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
@@ -63,9 +63,9 @@ export function Header({ user }: HeaderProps) {
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4" suppressHydrationWarning>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild suppressHydrationWarning>
               <Button
                 variant="ghost"
                 className="relative h-10 w-10 rounded-full"

@@ -51,7 +51,7 @@ A modern, full-stack task management application built with Next.js 16, featurin
 
 ### Prerequisites
 - Node.js 18+ installed
-- PostgreSQL database (local or cloud)
+- Supabase account (free tier available at [supabase.com](https://supabase.com))
 - OpenAI API key (optional - AI features will be disabled if not provided)
 
 ### Installation
@@ -67,36 +67,50 @@ A modern, full-stack task management application built with Next.js 16, featurin
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Set up Supabase Database**
 
-   Copy `.env.example` to `.env` and fill in your values:
+   a. Go to [supabase.com](https://supabase.com) and create a new project
+
+   b. Wait for the project to be ready (1-2 minutes)
+
+   c. Get your connection strings:
+      - Go to **Settings** → **Database**
+      - Copy the **Connection string** (URI format)
+      - You'll need both:
+        - **Transaction mode** (pooled) for `DATABASE_URL`
+        - **Session mode** (direct) for `DIRECT_URL`
+
+4. **Set up environment variables**
+
+   Copy `.env.example` to `.env` and fill in your Supabase values:
    ```bash
    cp .env.example .env
    ```
 
-   Required environment variables:
+   Update your `.env` file:
    ```env
-   # Database
-   DATABASE_URL="postgresql://user:password@localhost:5432/taskmanager"
+   # Database - Get from Supabase Dashboard
+   DATABASE_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
+   DIRECT_URL="postgresql://postgres.[PROJECT-REF]:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
 
-   # NextAuth
+   # NextAuth - Generate a random secret
    NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-secret-key"
+   NEXTAUTH_SECRET="your-super-secret-key-change-this"
 
    # AI (Optional - leave empty to disable AI features)
    OPENAI_API_KEY=""
    ```
 
-4. **Set up the database**
+5. **Set up the database**
    ```bash
    # Generate Prisma Client
-   npx prisma generate
+   npm run db:generate
 
-   # Run migrations
-   npx prisma migrate dev --name init
+   # Run migrations to create all tables in Supabase
+   npm run db:migrate
    ```
 
-5. **Run the development server**
+6. **Run the development server**
    ```bash
    npm run dev
    ```

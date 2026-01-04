@@ -4,18 +4,84 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Clock, ListTodo, FolderKanban, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { formatDateTime } from "@/lib/utils"
+import { prisma } from "@/lib/prisma"
 
-async function getAnalytics() {
-  const response = await fetch(`${process.env.NEXTAUTH_URL}/api/analytics`, {
-    cache: "no-store",
-  })
-  if (!response.ok) return null
-  return response.json()
+async function getAnalytics(userId: string) {
+  try {
+    const now = new Date()
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+    const [
+      totalTasks,
+      completedTasks,
+      myTasks,
+      overdueTasks,
+      totalProjects,
+      upcomingTasks,
+      recentActivities,
+      tasksByStatus,
+      tasksByPriority,
+    ] = await Promise.all([
+      prisma.task.count(),
+      prisma.task.count({ where: { status: "COMPLETED" } }),
+      prisma.task.count({ where: { assigneeId: userId } }),
+      prisma.task.count({ where: { dueDate: { lt: now }, status: { not: "COMPLETED" } } }),
+      prisma.project.count(),
+      prisma.task.findMany({
+        where: {
+          dueDate: { gte: now, lte: sevenDaysFromNow },
+          status: { notIn: ["COMPLETED", "CANCELLED"] },
+        },
+        include: { project: true },
+        orderBy: { dueDate: "asc" },
+        take: 5,
+      }),
+      prisma.activity.findMany({
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      prisma.task.groupBy({
+        by: ["status"],
+        _count: { status: true },
+      }),
+      prisma.task.groupBy({
+        by: ["priority"],
+        _count: { priority: true },
+      }),
+    ])
+
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+    return {
+      summary: {
+        totalTasks,
+        completedTasks,
+        myTasks,
+        overdueTasks,
+        totalProjects,
+        completionRate,
+      },
+      upcomingTasks,
+      recentActivities,
+      tasksByStatus: tasksByStatus.map(item => ({
+        status: item.status,
+        count: item._count.status,
+      })),
+      tasksByPriority: tasksByPriority.map(item => ({
+        priority: item.priority,
+        count: item._count.priority,
+      })),
+    }
+  } catch (error) {
+    console.error("Analytics error:", error)
+    return null
+  }
 }
 
 export default async function DashboardPage() {
   const session = await auth()
-  const analytics = await getAnalytics()
+  const analytics = session?.user?.id ? await getAnalytics(session.user.id) : null
 
   const stats = [
     {
@@ -70,7 +136,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="container py-8 space-y-8">
+    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -110,7 +176,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics?.upcomingTasks?.length > 0 ? (
+              {analytics?.upcomingTasks && analytics.upcomingTasks.length > 0 ? (
                 analytics.upcomingTasks.map((task: any) => (
                   <Link
                     key={task.id}

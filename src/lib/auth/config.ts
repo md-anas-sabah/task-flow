@@ -60,6 +60,7 @@ export const authConfig: NextAuthConfig = {
       },
     }),
   ],
+  basePath: "/api/auth",
   pages: {
     signIn: "/login",
     error: "/login",
