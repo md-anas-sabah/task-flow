@@ -7,26 +7,32 @@ export default auth((req) => {
 
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register")
   const isPublicPage = pathname === "/" || isAuthPage
-  const isApiAuth = pathname.startsWith("/api/auth")
+  const isApiRoute = pathname.startsWith("/api")
 
-  // Allow API auth routes
-  if (isApiAuth) {
+  // Allow all API routes (including auth)
+  if (isApiRoute) {
     return NextResponse.next()
   }
 
-  // Redirect logged in users away from auth pages
-  if (isLoggedIn && isAuthPage) {
-    return NextResponse.redirect(new URL("/dashboard", req.url))
+  // Allow public pages
+  if (isPublicPage) {
+    // Redirect logged in users away from auth pages to dashboard
+    if (isLoggedIn && isAuthPage) {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
+    }
+    return NextResponse.next()
   }
 
-  // Redirect non-logged in users to login page
-  if (!isLoggedIn && !isPublicPage) {
-    return NextResponse.redirect(new URL("/login", req.url))
+  // Protect all other routes - redirect to login if not authenticated
+  if (!isLoggedIn) {
+    const loginUrl = new URL("/login", req.url)
+    loginUrl.searchParams.set("callbackUrl", pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   return NextResponse.next()
 })
 
 export const config = {
-  matcher: ["/((?!api/register|_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$).*)"],
 }
