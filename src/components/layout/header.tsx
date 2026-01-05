@@ -14,7 +14,7 @@ import { getInitials } from "@/lib/utils";
 import { LogOut, Settings, User } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface HeaderProps {
   user: {
@@ -26,6 +26,7 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -45,19 +46,31 @@ export function Header({ user }: HeaderProps) {
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             <Link
               href="/dashboard"
-              className="transition-colors hover:text-foreground/80 text-foreground"
+              className={`transition-colors hover:text-foreground/80 ${
+                pathname === "/dashboard"
+                  ? "text-foreground"
+                  : "text-foreground/60"
+              }`}
             >
               Dashboard
             </Link>
             <Link
               href="/tasks"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              className={`transition-colors hover:text-foreground/80 ${
+                pathname === "/tasks"
+                  ? "text-foreground"
+                  : "text-foreground/60"
+              }`}
             >
               Tasks
             </Link>
             <Link
               href="/projects"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              className={`transition-colors hover:text-foreground/80 ${
+                pathname === "/projects"
+                  ? "text-foreground"
+                  : "text-foreground/60"
+              }`}
             >
               Projects
             </Link>
